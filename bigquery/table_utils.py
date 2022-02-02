@@ -173,7 +173,7 @@ class BigQueryTableRelease:
             # backup table
             if backup:
                 u = ulid.new()
-                unique_id = u.timestamp().str
+                unique_id = str(u.timestamp().int)
                 backup_table_access: TableAccess = TableAccess(
                     project_id=table_access.project_id,
                     dataset_id=table_access.dataset_id,
