@@ -38,6 +38,21 @@ class BigQueryTableRelease:
     def _create_full_path_table_id(table_access: TableAccess):
         return f"{table_access.project_id}.{table_access.dataset_id}.{table_access.table_id}"
 
+    def execute_legacy_sql(self, query: str,  dry_run: bool = False):
+        """Execute SQL query.
+
+        :param query:
+        :param dry_run:
+        :return:
+        """
+        try:
+            job_config = bigquery.QueryJobConfig(dry_run=dry_run, use_query_cache=False)
+            query_job = self.client.query(query, job_config=job_config)
+            # waiting for the result
+            query_job.result()
+        except Exception as exception:
+            raise exception
+
     def exist_table(self, table_access: TableAccess) -> Tuple[bool, T]:
         """Check if a table exists or not
         :param table_access: access properties of a table
