@@ -61,8 +61,7 @@ class Groups:
             )
             return service
         except Exception as exception:
-            print(f'Failed to create service: {exception}')
-            raise
+            raise exception
 
     def create_group(self, *, group_id, group_display_name, customer_id: str,
                      group_description: Optional[str] = None):
@@ -83,8 +82,7 @@ class Groups:
             request.uri += "&initialGroupConfig=WITH_INITIAL_OWNER"
             request.execute()
         except Exception as exception:
-            print(f'Failed to create group {group_display_name}: {exception}')
-            raise
+            raise exception
 
     def list_google_group_memberships(self, group_id):
         """List group memberships by using groups.memberships.list API
@@ -105,8 +103,7 @@ class Groups:
             ).execute()
             return response
         except Exception as exception:
-            print(f'Failed to list group memberships: {exception}')
-            raise
+            raise exception
 
     def search_transitive_groups(self, member, page_size) -> Optional[List]:
         """Search all groups memberships of a member.
@@ -144,8 +141,7 @@ class Groups:
             return group_list
 
         except Exception as exception:
-            print(f'Failed to list group memberships of member: {member}: {exception}')
-            raise
+            raise exception
 
     def create_google_group_membership(self, group_key: str, member_key: str, role_name: Optional[str] = 'MEMBER'):
         """Add member to group.
@@ -174,20 +170,14 @@ class Groups:
             # Create a membership using the ID for the parent group and a membership object
             response = self.cloud_identity_service.groups().memberships().create(parent=group_name,
                                                                                  body=membership).execute()
-            print(f'Created membership for user {member_key} on group {group_name}')
             return response
         except Exception as exception:
-            print(
-                f'Failed to create membership for user {member_key} on group with group_id {group_key}: {exception}'
-            )
             if isinstance(exception, HttpError):
-                # TODO: handle exceptions explicitly rather than raising them.
                 if exception.resp.status == 409:
                     raise ExistedMembershipException(f'{member_key} already exists on {group_key}')
                 if exception.resp.status == 403:
                     raise MemberDoesNotExistException(f'{member_key} does not exist')
-                raise exception
-            raise
+            raise exception
 
     def remove_membership(self, *, group_id: str, membership_id: str):
         """Remove a user from group.
@@ -204,8 +194,7 @@ class Groups:
             print(f'Successfully removed {membership_id} from {group_id}')
             return response
         except Exception as exception:
-            print(f'Cannot remove {membership_id} from {group_id}: {exception}')
-            raise
+            raise exception
 
     def list_groups(self):
         """List all google groups.
@@ -237,8 +226,7 @@ class Groups:
                     break
             return group_list
         except Exception as exception:
-            print(f"Failed to list groups: {exception}")
-            raise
+            raise exception
 
     def remove_memberships_from_all_groups(self, membership_id: str, group_ids: List[str]):
         """Revoke all memberships of a user.
@@ -252,8 +240,7 @@ class Groups:
             try:
                 self.remove_membership(group_id=group_id, membership_id=membership_id)
             except Exception as exception:
-                print(f'Failed to remove user {membership_id} from group {group_id}: {exception}')
-                raise
+                raise exception
 
     def restore_memberships(self, member_key: str, group_keys: List[str]):
         """Restore all memberships of membership_id
@@ -266,8 +253,7 @@ class Groups:
             try:
                 self.create_google_group_membership(group_key=group_key, member_key=member_key)
             except Exception as exception:
-                print(f'Failed to add {member_key} to group {group_key}: {exception}')
-                raise
+                raise exception
 
     def delete_group(self, group_id: str):
         """Delete a google group
@@ -280,8 +266,6 @@ class Groups:
                 name=f'groups/{group_id}'
             )
             response = request.execute()
-            print(f'Deleted group {group_id}')
             return response
         except Exception as exception:
-            print(f'Failed to delete group {group_id}: {exception}')
-            raise
+            raise exception
