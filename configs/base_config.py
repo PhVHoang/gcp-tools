@@ -49,6 +49,7 @@ class Config(jsons.JsonSerializable.set_deserializer(custom_string_deserializer,
         self.config_clazz = config_clazz
 
     def __post_init__(self):
+        # Default fields check
         for field in self.__default_fields__:
             self.__setattr__(
                 field,

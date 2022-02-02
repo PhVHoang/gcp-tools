@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple, Any
+from typing import List, Tuple, TypeVar
 import os
 
 from google.cloud import bigquery
@@ -7,6 +7,7 @@ from google.oauth2 import service_account
 from google.cloud.exceptions import NotFound
 import ulid
 
+T = TypeVar("T")
 
 @dataclass
 class TableAccess:
@@ -37,7 +38,7 @@ class BigQueryTableRelease:
     def _create_full_path_table_id(table_access: TableAccess):
         return f"{table_access.project_id}.{table_access.dataset_id}.{table_access.table_id}"
 
-    def __exist_table(self, table_access: TableAccess) -> Tuple[bool, Any]:
+    def exist_table(self, table_access: TableAccess) -> Tuple[bool, T]:
         """Check if a table exists or not
         :param table_access: access properties of a table
         :return: boolean
@@ -54,23 +55,23 @@ class BigQueryTableRelease:
         except NotFound:
             return False, None
 
-    def __get_table_schema(self,  table_access: TableAccess) -> Any:
+    def get_table_schema(self,  table_access: TableAccess) -> T:
         """Get schema of an existing table.
 
         :param table_access: access properties of a table
         :return: table schema
         """
-        _, schema = self.__exist_table(table_access)
+        _, schema = self.exist_table(table_access)
         return schema
 
-    def __create_table(self, table_access: TableAccess, schema: Any) -> bool:
+    def create_table(self, table_access: TableAccess, schema: T) -> bool:
         """create a table on BigQuery with access path is: project_id.dataset_id.table_id
 
         :param table_access: access properties of a table
         :param schema: table schema
         :return: True if this new table can be created, False otherwise
         """
-        exist, _ = self.__exist_table(table_access)
+        exist, _ = self.exist_table(table_access)
         if exist:
             return False
         try:
@@ -80,7 +81,7 @@ class BigQueryTableRelease:
         except Exception as exception:
             raise exception
 
-    def __copy_table(self, src_table_access: TableAccess, dest_table_access: TableAccess):
+    def copy_table(self, src_table_access: TableAccess, dest_table_access: TableAccess):
         """Copy a table from src_table_access to dest_table_access
 
         :param src_table_access: source table
@@ -88,12 +89,12 @@ class BigQueryTableRelease:
         :return: True if the copy job run successfully, False otherwise
         """
         # check if src_table_access exists or not
-        exists, src_table_schema = self.__exist_table(src_table_access)
+        exists, src_table_schema = self.exist_table(src_table_access)
         if not exists:
             return
 
         # Check if dest_table_access already exists
-        dest_table_exists, dest_table_schema = self.__exist_table(dest_table_access)
+        dest_table_exists, dest_table_schema = self.exist_table(dest_table_access)
         if dest_table_exists:
             return
 
@@ -109,7 +110,7 @@ class BigQueryTableRelease:
         except Exception as exception:
             raise exception
 
-    def __drop_table(self, table_access: TableAccess, backup: bool = True):
+    def drop_table(self, table_access: TableAccess, backup: bool = True):
         """drop a table
 
         :param table_access: TableAccess
@@ -129,15 +130,22 @@ class BigQueryTableRelease:
                     dataset_id=table_access.dataset_id,
                     table_id=table_access.table_id + unique_id
                 )
-                self.__copy_table(table_access, backup_table_access)
+                self.copy_table(table_access, backup_table_access)
                 self.client.delete_table(table_id, not_found_ok=False)
         except Exception as exception:
             raise exception
 
-    def __modify_table_schema(self, table_access: TableAccess, backup: bool = True):
+    def modify_table_schema(
+            self, table_access: TableAccess,
+            columns_to_drop: List[bigquery.SchemaField],
+            new_columns_to_add: List[bigquery.SchemaField],
+            backup: bool = True
+    ):
         """
 
         :param table_access:
+        :param columns_to_drop
+        :param new_columns_to_add
         :param backup
         :return:
         """
@@ -156,18 +164,21 @@ class BigQueryTableRelease:
                     dataset_id=table_access.dataset_id,
                     table_id=table_access.table_id + unique_id
                 )
-                self.__copy_table(table_access, backup_table_access)
+                self.copy_table(table_access, backup_table_access)
 
             # Modify schema
             original_schema = table.schema
             new_schema = original_schema[:]
 
-            new_schema.append(bigquery.SchemaField("phone", "STRING"))
+            # Adding new columns
+            for new_col in new_columns_to_add:
+                new_schema.append(new_col)
+
+            # Remove existing columns
+            for col in columns_to_drop:
+                new_schema.remove(col)
 
             table.schema = new_schema
-            table = self.client.update_table(table, ["schema"])  # Make an API request.
+            self.client.update_table(table, ["schema"])
         except Exception as exception:
             raise exception
-
-    def execute(self):
-        pass
