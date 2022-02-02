@@ -45,14 +45,14 @@ class Config(jsons.JsonSerializable.set_deserializer(custom_string_deserializer,
 
     __mandatory_fields__ = []
 
-    def __init__(self, config_klass):
-        self.config_klass = config_klass
+    def __init__(self, config_clazz):
+        self.config_clazz = config_clazz
 
     def __post_init__(self):
         for field in self.__default_fields__:
             self.__setattr__(
                 field,
-                CommonHelpers.set_default_value(self.__getattribute__(field), self.config_klass.__getattribute__(field))
+                CommonHelpers.set_default_value(self.__getattribute__(field), self.config_clazz.__getattribute__(field))
             )
 
         # Mandatory fields check
