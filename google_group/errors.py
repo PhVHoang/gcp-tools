@@ -1,5 +1,5 @@
 class ExistedMembershipException(Exception):
     pass
 
-class InvalidCredentialException(Exception):
+class MemberDoesNotExistException(Exception):
     pass
