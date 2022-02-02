@@ -2,7 +2,7 @@ from typing import Iterable
 
 from configs.errors import NullArgumentError, InvalidDateFormat
 
-class CommonHelpers:
+class ConfigHelpers:
 
     @staticmethod
     def set_default_value(passed_value, default_value):
@@ -34,6 +34,6 @@ class CommonHelpers:
     def flatten(l):
         for el in l:
             if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
-                yield from CommonHelpers.flatten(el)
+                yield from ConfigHelpers.flatten(el)
             else:
                 yield el

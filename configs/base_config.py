@@ -7,7 +7,7 @@ from jsons._load_impl import load
 from jsons.deserializers.default_primitive import default_primitive_deserializer
 from jsons.exceptions import DeserializationError
 
-from configs.config_helpers import CommonHelpers
+from configs.config_helpers import ConfigHelpers
 
 
 T = TypeVar('T')
@@ -45,18 +45,18 @@ class Config(jsons.JsonSerializable.set_deserializer(custom_string_deserializer,
 
     __mandatory_fields__ = []
 
-    def __init__(self, config_klass):
-        self.config_klass = config_klass
+    def __init__(self, config_clazz):
+        self.config_clazz = config_clazz
 
     def __post_init__(self):
         for field in self.__default_fields__:
             self.__setattr__(
                 field,
-                CommonHelpers.set_default_value(self.__getattribute__(field), self.config_klass.__getattribute__(field))
+                ConfigHelpers.set_default_value(self.__getattribute__(field), self.config_clazz.__getattribute__(field))
             )
 
         # Mandatory fields check
         for field in self.__mandatory_fields__:
-            CommonHelpers.null_field_check(field, self.__getattribute__(field))
+            ConfigHelpers.null_field_check(field, self.__getattribute__(field))
 
 
