@@ -150,6 +150,21 @@ class BigQueryTableRelease:
         except Exception as exception:
             raise exception
 
+    def delete_all_rows(self, table_access: TableAccess):
+        """Delete all records of a table.
+
+        :param table_access: Table Access
+        :return:
+        """
+        table_id = self._create_full_path_table_id(table_access)
+        try:
+            query = f"""
+                       DELETE FROM `{table_id}` WHERE TRUE
+                   """
+            self.execute_legacy_sql(query)
+        except Exception as e:
+            raise e
+
     def modify_table_schema(
             self, table_access: TableAccess,
             columns_to_drop: List[bigquery.SchemaField],
