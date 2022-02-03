@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Tuple, TypeVar
+from typing import List, Iterator, Tuple, TypeVar
 import os
 
 from google.cloud import bigquery
@@ -164,6 +164,36 @@ class BigQueryTableRelease:
             self.execute_legacy_sql(query)
         except Exception as e:
             raise e
+
+    def list_tables(self, dataset_id: str) -> Iterator:
+        """List all tables of a dataset given this dataset_id.
+
+        :param dataset_id: It should have the format of `project_id.dataset_id`
+        :return:
+        """
+        try:
+            tables = self.client.list_tables(dataset_id)
+            return tables
+        except Exception as exception:
+            raise exception
+
+    def create_table_revision(self, table_access: TableAccess):
+        """Create a revision of a table for tracking changes history purpose.
+
+        :param table_access:
+        :return:
+        """
+        try:
+            u = ulid.new()
+            unique_id = str(u.timestamp().int)
+            revision_table_access: TableAccess = TableAccess(
+                project_id=table_access.project_id,
+                dataset_id=table_access.dataset_id,
+                table_id=table_access.table_id + unique_id
+            )
+            self.copy_table(table_access, revision_table_access)
+        except Exception as exception:
+            raise exception
 
     def modify_table_schema(
             self, table_access: TableAccess,
