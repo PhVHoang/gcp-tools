@@ -31,6 +31,17 @@ class ConfigHelpers:
         return None
 
     @staticmethod
+    def boolify(value):
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            if value.lower() == 'false':
+                return False
+            else:
+                return True
+        return value
+
+    @staticmethod
     def flatten(l):
         for el in l:
             if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
