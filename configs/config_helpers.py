@@ -35,10 +35,7 @@ class ConfigHelpers:
         if isinstance(value, bool):
             return value
         if isinstance(value, str):
-            if value.lower() == 'false':
-                return False
-            else:
-                return True
+            return value.lower() != "false"
         return value
 
     @staticmethod
