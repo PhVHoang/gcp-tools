@@ -20,17 +20,15 @@ class TableAccess:
 
 
 class BigQueryTableRelease:
-    OPERATION_TYPE = "bigquery_table_release"
-    SCOPE = (
+    _SCOPE = (
         "https://www.googleapis.com/auth/bigquery",
         "https://www.googleapis.com/auth/cloud-platform",
     )
 
     def __init__(self, project_id: str = "spdb-dev"):
-        super(BigQueryTableRelease, self).__init__(self.OPERATION_TYPE)
         self.credentials = service_account.Credentials.from_service_account_file(
             filename=os.getenv("SERVICE_ACCOUNT_CREDENTIAL_PATH_DEFAULT"),
-            scopes=self.SCOPE
+            scopes=self._SCOPE
         )
         self.project_id = project_id
         self.client = bigquery.Client(
