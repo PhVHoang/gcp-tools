@@ -1,3 +1,3 @@
-# bqwrapper
+# GCP utility functions
 
-BigQuery utility functions to interact with Datasets.
+GCP utility functions
