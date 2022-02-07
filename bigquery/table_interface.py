@@ -68,7 +68,7 @@ class BigQueryTableRelease:
         try:
             # dataset = client.dataset(dataset_id)
             # table_ref = dataset.table(table_id)
-            table = self.client.get_table(f'{project_id}.{dataset_id}.{table_id}')
+            table = self.client.get_table(f"{project_id}.{dataset_id}.{table_id}")
             return True, table.schema
         except NotFound:
             return False, None
@@ -132,7 +132,7 @@ class BigQueryTableRelease:
         """drop a table
 
         :param table_access: TableAccess
-        :param backup: backup the table if it's True
+        :param backup: backup the table if it"s True
         :return:
         """
         table_id = self._create_full_path_table_id(table_access)
@@ -246,45 +246,43 @@ class BigQueryTableRelease:
         except Exception as exception:
             raise exception
 
-    @staticmethod
-    def backup_table_to_gcs(dataset, table_name, to_dir, schema_only):
+    def backup_table_to_gcs(self, table_access: TableAccess, to_dir, schema_only):
         """Store schema & data in table to GCS.
 
-        :param dataset: BigQuery dataset name
-        :param table_name: BigQuery table name
+        :param table_access
         :param to_dir: GCS output prefix
-        :param schema_only: don't export data, just the schema
+        :param schema_only: don"t export data, just the schema
         :return: None
         """
 
-        full_table_name = f'{dataset}.{table_name}'
+        full_table_name = self._create_full_path_table_id(table_access)
 
         # write schema to GCS
-        schema = exec_shell_command(['bq', 'show', '--schema', full_table_name])
+        schema = exec_shell_command(["bq", "show", "--schema", full_table_name])
         write_json_string(
             schema,
-            os.path.join(to_dir, dataset, table_name, 'schema.json')
+            os.path.join(to_dir, table_access.dataset_id, table_access.table_id, "schema.json")
         )
 
         if not schema_only:
             # back up the table definition
-            tbldef = exec_shell_command(['bq', '--format=json', 'show', full_table_name])
+            tbldef = exec_shell_command(("bq", "--format=json", "show", full_table_name))
             write_json_string(
                 tbldef,
-                os.path.join(to_dir, dataset, table_name, 'tbldef.json')
+                os.path.join(to_dir, table_access.dataset_id, table_access.table_id, "tbldef.json")
             )
 
             tbldef = json.loads(tbldef)  # array of dicts
-            if tbldef['type'] == 'VIEW':
+            if tbldef["type"] == "VIEW":
                 return  # no need to extract data
 
             # read the data
-            output_data_name = os.path.join(to_dir, dataset, table_name, 'data_*.avro')
+            output_data_name = os.path.join(to_dir, table_access.dataset_id, table_access.table_id, "data_*.avro")
             _ = exec_shell_command([
-                'bq', 'extract',
-                '--destination_format=AVRO',
-                '--use_avro_logical_types',  # for DATE, TIME, NUMERIC
-                '{}.{}'.format(dataset, table_name),
+                "bq", "extract",
+                "--destination_format=AVRO",
+                "--use_avro_logical_types",  # for DATE, TIME, NUMERIC
+                f"{table_access.dataset_id}.{table_access.table_id}",
                 output_data_name
             ])
 
