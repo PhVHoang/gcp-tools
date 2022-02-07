@@ -11,26 +11,27 @@ from google_group.errors import (
     MemberDoesNotExistException,
 )
 
-_SCOPES = [
-    'https://www.googleapis.com/auth/cloud-identity.groups',
-    'https://www.googleapis.com/auth/admin.directory.user',
-    'https://www.googleapis.com/auth/admin.directory.group.member',
-    'https://www.googleapis.com/auth/admin.directory.group.readonly'
-]
-_CLOUD_IDENTITY_SERVICE_NAME = 'cloudidentity'
-_CLOUD_IDENTITY_API_VERSION = 'v1'
 SERVICE_ACCOUNT_CREDENTIAL_PATH_DEFAULT = os.getenv('SERVICE_ACCOUNT_CREDENTIAL_PATH_DEFAULT')
 
 
 class Groups:
     """Google Groups API interactions."""
+    _SCOPES = [
+        'https://www.googleapis.com/auth/cloud-identity.groups',
+        'https://www.googleapis.com/auth/admin.directory.user',
+        'https://www.googleapis.com/auth/admin.directory.group.member',
+        'https://www.googleapis.com/auth/admin.directory.group.readonly'
+    ]
+    _CLOUD_IDENTITY_SERVICE_NAME = 'cloudidentity'
+    _CLOUD_IDENTITY_API_VERSION = 'v1'
+
     def __init__(self) -> None:
         """Initialize service."""
         assert SERVICE_ACCOUNT_CREDENTIAL_PATH_DEFAULT, "Service account path must be provided."
         self.cloud_identity_service = self.__create_service(
-            service_name=_CLOUD_IDENTITY_SERVICE_NAME,
-            service_version=_CLOUD_IDENTITY_API_VERSION,
-            scopes=_SCOPES,
+            service_name=self._CLOUD_IDENTITY_SERVICE_NAME,
+            service_version=self._CLOUD_IDENTITY_API_VERSION,
+            scopes=self._SCOPES,
             credentials_path=SERVICE_ACCOUNT_CREDENTIAL_PATH_DEFAULT
         )
 
