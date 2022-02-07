@@ -25,12 +25,14 @@ def exec_shell_pipeline(pipeline):
     if len(pipeline) == 1:
         return exec_shell_command(pipeline[0])
 
+    curr = None
     prev = subprocess.Popen(pipeline[0], stdout=subprocess.PIPE)
     for i in range(1, len(pipeline)):
         logging.info('   '*i + ' '.join(pipeline[i]))
         curr = subprocess.Popen(pipeline[i], stdin=prev.stdout, stdout=subprocess.PIPE, universal_newlines=True)
-        prev.stdout.close() # allow curr to receive a SIGPIPE if prev exists
+        prev.stdout.close()  # allow curr to receive a SIGPIPE if prev exists
         prev = curr
+    assert isinstance(curr, subprocess.Popen)
     return curr.communicate()[0]
 
 
