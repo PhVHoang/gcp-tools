@@ -248,8 +248,8 @@ class BigQueryTableRelease:
 
     @staticmethod
     def backup_table_to_gcs(dataset, table_name, to_dir, schema_only):
-        """
-        Store schema & data in table to GCS
+        """Store schema & data in table to GCS.
+
         :param dataset: BigQuery dataset name
         :param table_name: BigQuery table name
         :param to_dir: GCS output prefix
