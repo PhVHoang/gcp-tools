@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import json
 from typing import List, Iterator, Tuple, TypeVar
 import os
 
@@ -6,6 +7,8 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 from google.cloud.exceptions import NotFound
 import ulid
+
+from bigquery.helpers import exec_shell_command, write_json_string
 
 T = TypeVar("T")
 
@@ -242,3 +245,46 @@ class BigQueryTableRelease:
             self.client.update_table(table, ["schema"])
         except Exception as exception:
             raise exception
+
+    @staticmethod
+    def backup_table_to_gcs(dataset, table_name, to_dir, schema_only):
+        """
+        Store schema & data in table to GCS
+        :param dataset: BigQuery dataset name
+        :param table_name: BigQuery table name
+        :param to_dir: GCS output prefix
+        :param schema_only: don't export data, just the schema
+        :return: None
+        """
+
+        full_table_name = f'{dataset}.{table_name}'
+
+        # write schema to GCS
+        schema = exec_shell_command(['bq', 'show', '--schema', full_table_name])
+        write_json_string(
+            schema,
+            os.path.join(to_dir, dataset, table_name, 'schema.json')
+        )
+
+        if not schema_only:
+            # back up the table definition
+            tbldef = exec_shell_command(['bq', '--format=json', 'show', full_table_name])
+            write_json_string(
+                tbldef,
+                os.path.join(to_dir, dataset, table_name, 'tbldef.json')
+            )
+
+            tbldef = json.loads(tbldef)  # array of dicts
+            if tbldef['type'] == 'VIEW':
+                return  # no need to extract data
+
+            # read the data
+            output_data_name = os.path.join(to_dir, dataset, table_name, 'data_*.avro')
+            _ = exec_shell_command([
+                'bq', 'extract',
+                '--destination_format=AVRO',
+                '--use_avro_logical_types',  # for DATE, TIME, NUMERIC
+                '{}.{}'.format(dataset, table_name),
+                output_data_name
+            ])
+
