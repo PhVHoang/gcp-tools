@@ -6,8 +6,8 @@ import tempfile
 
 
 def exec_shell_command(command):
-    """
-    Execute shell command and return output as a string
+    """Execute shell command and return output as a string.
+
     :param command:  1D array of strings e.g. ['ls', '-l']
     :return: output of command
     """
@@ -17,8 +17,8 @@ def exec_shell_command(command):
 
 
 def exec_shell_pipeline(pipeline):
-    """
-    Execute shell pipeline and return output as a string
+    """Execute shell pipeline and return output as a string.
+
     :param pipeline:  2D array of strings e.g. [ ['ls', '-l'], ['grep', 'xyz'] ]
     :return: output of command
     """
@@ -35,8 +35,8 @@ def exec_shell_pipeline(pipeline):
 
 
 def write_json_string(json_string, output_gcs_file):
-    """
-    Write a json string to a file in Google Cloud Storage in pretty format
+    """Write a json string to a file in Google Cloud Storage in pretty format.
+
     :param json_string: string to write out
     :param output_gcs_file:  URL starting with gs://
     """
@@ -48,9 +48,10 @@ def write_json_string(json_string, output_gcs_file):
     os.close(fd)
     exec_shell_command(['gsutil', 'cp', fname, output_gcs_file])
 
+
 def read_json_string(gcs_file):
-    """
-    Read a json string to a file from Google Cloud Storage
+    """Read a json string to a file from Google Cloud Storage.
+
     :param gcs_file:  URL starting with gs://
     """
     json_string = exec_shell_command(['gsutil', 'cat', gcs_file])
