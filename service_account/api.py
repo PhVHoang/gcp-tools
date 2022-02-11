@@ -23,7 +23,7 @@ class ServiceAccount:
         try:
             self.project_id = project_id
             self.credentials = service_account.Credentials.from_service_account_file(
-                filename=credential_path if credential_path else 'token.json',
+                filename=credential_path,
                 scopes=SCOPES
             )
             self.service = googleapiclient.discovery.build(
