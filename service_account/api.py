@@ -151,38 +151,3 @@ class ServiceAccount:
             return response
         except Exception as exception:
             raise exception
-
-
-class LoggingMixin(object):
-    """
-    Convenience super-class to have a logger configured with the class name
-    """
-    def __init__(self, context=None):
-        self._set_context(context)
-
-    # We want to deprecate the logger property in Airflow 2.0
-    # The log property is the de facto standard in most programming languages
-    @property
-    def logger(self):
-        warnings.warn(
-            'Initializing logger for {} using logger(), which will '
-            'be replaced by .log in Airflow 2.0'.format(
-                self.__class__.__module__ + '.' + self.__class__.__name__
-            ),
-            DeprecationWarning
-        )
-        return self.log
-
-    @property
-    def log(self):
-        try:
-            return self._log
-        except AttributeError:
-            self._log = logging.getLogger(
-                self.__class__.__module__ + '.' + self.__class__.__name__
-            )
-            return self._log
-
-    def _set_context(self, context):
-        if context is not None:
-            set_context(self.log, context)
